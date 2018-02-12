@@ -1,0 +1,15 @@
+{
+  "name": "longtime-sunshine",
+  "version": "0.0.1",
+  "description": "A Nashorn post exploitation framework",
+  "main": "longtime.js",
+  "dependencies" : {
+  	"terminal-kit":"1.14.x"
+  },
+  "author": "Jacob Baines",
+  "license": "BSD-3-Clause",
+  "repository" : {
+  	"type" : "git",
+  	"url" : "https://github.com/jacob-baines/longtime-sunshine.git"
+  }
+}

